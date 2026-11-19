@@ -1,23 +1,34 @@
+<div align="center">
+
 # QweNumpad
 
-Type numbers with your left hand. `qwe` `asd` `zxc` become a numpad — automatically, only inside numeric fields.
+**Type numbers with your left hand.**<br>
+`qwe` `asd` `zxc` become a numpad — automatically, only inside numeric fields.
 
-```
-   q w e              7 8 9
-   a s d      ->      4 5 6
-   z x c              1 2 3
-  space                 0
-     v                  .
-```
+[![build](https://github.com/Muratmd/QweNumpad/actions/workflows/build.yml/badge.svg)](https://github.com/Muratmd/QweNumpad/actions/workflows/build.yml)
+[![release](https://img.shields.io/github/v/release/Muratmd/QweNumpad?color=2da44e)](https://github.com/Muratmd/QweNumpad/releases/latest)
+[![license](https://img.shields.io/github/license/Muratmd/QweNumpad?color=blue)](LICENSE)
+![platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6)
+
+<img src="docs/assets/hero.svg" alt="q w e, a s d, z x c under the left hand map to numpad 7 8 9, 4 5 6, 1 2 3; space is 0 and v is the decimal separator" width="720">
+
+**[⬇ Download QweNumpad.exe](https://github.com/Muratmd/QweNumpad/releases/latest)** · single file · no install · no .NET needed
+
+</div>
+
+---
 
 No reaching for the number row. No numpad required. The 3x3 letter block under your left
 hand already has the same shape as the numpad's digit block, so QweNumpad maps one onto the other.
 
 **The point is that you don't switch modes by hand.** When focus lands in a field that wants
 digits — a phone number, an amount, an IBAN, a quantity — the mapping turns itself on. When you
-focus a normal text field, it turns itself off.
+focus a normal text field, it turns itself off. Letters stay letters everywhere else.
 
----
+> **🇹🇷 Türkçe:** Sol elinin altındaki `qwe` `asd` `zxc` tuşları, sayısal bir alana
+> (telefon, tutar, IBAN, adet…) tıkladığın anda kendiliğinden numpad'e dönüşür; normal metin
+> alanında harf olarak kalır. Yanlış tahmin ederse `Ctrl`+`Alt`+`N` ile düzelt — o alanı
+> öğrenir, bir daha doğru açılır. Arayüz Türkçe. [İndir](https://github.com/Muratmd/QweNumpad/releases/latest).
 
 ## Status
 
@@ -58,8 +69,13 @@ And the override teaches: the field you corrected is remembered by its signature
 the automatic decision is already right. In the applications you actually use, accuracy climbs
 toward 100% as you go.
 
+Numbers inside a label are ignored when matching, so a rule taught on "Tutar: 150 TL" still
+applies when the same field later reads "Tutar: 2300 TL", and one taught on row 3 of a grid
+applies to row 12.
+
 The tray menu also has explicit **"teach this field as numeric / as text"** entries, and
 **Diagnostics** shows exactly what the detector saw — open that first if something misbehaves.
+It has a **copy** button that produces exactly what a bug report needs.
 
 ### Escape hatches
 
@@ -142,7 +158,7 @@ src/QweNumpad.App/         WinForms tray application
   Detection/UiaFocusWatcher.cs    UI Automation focus tracking
   Ui/                             tray icon, settings, diagnostics
 
-tests/QweNumpad.Core.Tests/   66 unit tests
+tests/QweNumpad.Core.Tests/   74 unit tests
 tools/                        end-to-end test scripts
 ```
 
@@ -160,7 +176,7 @@ instead, rather than silently toggling your Num Lock.
 ## Testing
 
 ```powershell
-dotnet test                                                        # 66 unit tests
+dotnet test                                                        # 74 unit tests
 powershell -ExecutionPolicy Bypass -File tools\smoke-test.ps1      # end to end, in-app
 powershell -ExecutionPolicy Bypass -File tools\browser-test.ps1    # end to end, in a browser
 ```
@@ -175,7 +191,9 @@ Issues and pull requests welcome. Things that would genuinely help:
 - **English (and other) UI strings** — all user-facing text is Turkish and hardcoded today.
 - **Keyword lists for other languages** — `FieldHeuristics.LongKeywords` is Turkish + English.
 - **Detection for stubborn toolkits** — if a program you use always guesses wrong, open the
-  Diagnostics window, copy its output into an issue, and say what the field actually is.
+  Diagnostics window, press **copy**, and paste it into a
+  [bug report](https://github.com/Muratmd/QweNumpad/issues/new/choose) along with what the
+  field actually is.
 - **An on-screen indicator** — some people will want more than a tray icon colour.
 
 If you add logic, add it to `QweNumpad.Core` with a test. The Core project deliberately has no

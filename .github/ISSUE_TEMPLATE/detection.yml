@@ -1,0 +1,62 @@
+name: Wrong detection / Yanlış algılama
+description: A field was remapped when it should not have been, or was not remapped when it should have been.
+title: "[detection] <application>: <field>"
+labels: ["detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks — these reports are what make automatic detection better for everyone.
+
+        **Before filing:** you can always fix it for yourself in one keystroke. Focus the field and press
+        `Ctrl`+`Alt`+`N` — QweNumpad remembers that field from then on. This report is about fixing it for
+        *everyone else* too.
+
+        *(TR: Kendi bilgisayarında düzeltmek için alana tıklayıp `Ctrl`+`Alt`+`N` bas, o alan öğrenilir.
+        Bu form, düzeltmeyi herkes için kalıcı yapmak içindir.)*
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics output / Tanılama çıktısı
+      description: |
+        1. Right-click the tray icon → **Tanılama…**
+        2. Click into the problem field in the other application
+        3. Back in the Diagnostics window, press **Panoya kopyala**, then paste here
+
+        It contains only field metadata (application, control type, id, label) — nothing you typed.
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: expected
+    attributes:
+      label: What should have happened? / Ne olmalıydı?
+      options:
+        - It should be numeric (qwe → 789) / Sayısal olmalıydı
+        - It should stay text (qwe → qwe) / Metin kalmalıydı
+    validations:
+      required: true
+
+  - type: input
+    id: application
+    attributes:
+      label: Application and version / Uygulama ve sürümü
+      placeholder: "e.g. Chrome 131, Logo Tiger 3, Excel 365, an internal Electron app"
+    validations:
+      required: true
+
+  - type: input
+    id: field
+    attributes:
+      label: What is the field? / Alan ne?
+      placeholder: "e.g. phone number on the customer form, invoice amount, quantity column"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else / Ek not
+      description: A public URL that shows the same field is the single most useful extra.

@@ -1,0 +1,64 @@
+name: Bug / Hata
+description: Something broke — a crash, stuck keys, the hotkey not working, settings not saving.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the problem is that a field was **detected wrong**, use the "Wrong detection" template instead —
+        it asks for the information that report needs.
+
+  - type: input
+    id: version
+    attributes:
+      label: QweNumpad version / Sürüm
+      description: Right-click the tray icon — the version is the first line of the menu.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: "Run `winver`, or copy the Windows line from the Diagnostics window."
+      placeholder: "Windows 11 24H2 (10.0.26100)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: keyboard
+    attributes:
+      label: Keyboard layout / Klavye düzeni
+      options:
+        - Turkish Q
+        - Turkish F
+        - US / English
+        - Other (say below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Adımlar
+      placeholder: |
+        1. Open ...
+        2. Click into ...
+        3. Type ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual / Beklenen ve olan
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else / Ek not
+      description: Other keyboard tools running (AutoHotkey, PowerToys Keyboard Manager, …) are worth mentioning — they also hook the keyboard.
