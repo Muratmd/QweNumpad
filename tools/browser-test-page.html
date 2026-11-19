@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>QweNumpad browser test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 540px; margin: 40px auto; }
+    label { display: block; margin: 18px 0 4px; font-weight: 600; }
+    input { width: 100%; padding: 8px; font-size: 16px; }
+    p.hint { color: #555; font-size: 13px; margin: 2px 0 0; }
+  </style>
+</head>
+<body>
+  <h1>QweNumpad browser test</h1>
+
+  <label for="numField">Spinner (input type=number)</label>
+  <input id="numField" type="number" aria-label="Spinner test">
+  <p class="hint">Beklenen: SAYISAL — RangeValue / Spinner deseni üzerinden.</p>
+
+  <label for="telField">Telefon Numarasi (input type=text)</label>
+  <input id="telField" type="text" aria-label="Telefon Numarasi">
+  <p class="hint">Beklenen: SAYISAL — alan adindaki anahtar kelime uzerinden.</p>
+
+  <label for="txtField">Aciklama (input type=text)</label>
+  <input id="txtField" type="text" aria-label="Aciklama">
+  <p class="hint">Beklenen: METIN — ceviri yapilmamali.</p>
+
+  <label for="pwField">Parola (input type=password)</label>
+  <input id="pwField" type="password" aria-label="Parola">
+  <p class="hint">Beklenen: METIN — parola alanlari asla cevrilmez.</p>
+</body>
+</html>

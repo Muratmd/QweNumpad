@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Unit tests
+        run: dotnet test tests/QweNumpad.Core.Tests/QweNumpad.Core.Tests.csproj --no-build --configuration Release --verbosity normal
+
+      # The end-to-end scripts in tools/ need an interactive desktop session with a real
+      # keyboard queue, so they are not run here. Run them locally before a release.
+
+      - name: Publish single-file executable
+        run: dotnet publish src/QweNumpad.App/QweNumpad.App.csproj --configuration Release --output publish
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: QweNumpad-win-x64
+          path: publish/QweNumpad.exe
+          if-no-files-found: error
