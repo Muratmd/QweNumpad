@@ -202,6 +202,22 @@ try {
     foreach ($vk in 0x51, 0x57, 0x45) { [Keyboard]::Tap([uint16]$vk) }
     Start-Sleep -Milliseconds 300
     Assert-Equal 'Metin alaninda qwe' 'qwe' (Get-FieldValue -Element $textField)
+
+    # --- 4. Diagnostics "copy" reports the field, not the copy button itself ---
+    # Focusing the button first is the point: that is what a real click does, and the
+    # diagnostics view must keep describing the field the user was investigating.
+    $numericField.SetFocus()
+    Start-Sleep -Milliseconds 700
+    $copyButton = Find-Descendant -Root $window -AutomationId 'copyDiagnostics'
+    $copyButton.SetFocus()
+    Start-Sleep -Milliseconds 900
+    $copyButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+    Start-Sleep -Milliseconds 400
+    $clip = (Get-Clipboard -Raw)
+    $describesField = [bool]($clip -match 'AutomationId\s+:\s+testNumericField')
+    $describesButton = [bool]($clip -match 'copyDiagnostics')
+    Assert-Equal 'Tanilama kopyasi test alanini anlatiyor' 'True' "$describesField"
+    Assert-Equal 'Tanilama kopyasi butonu anlatmiyor' 'False' "$describesButton"
 }
 finally {
     if ($process -and -not $process.HasExited) {

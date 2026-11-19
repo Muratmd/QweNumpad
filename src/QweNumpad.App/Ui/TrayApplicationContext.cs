@@ -7,8 +7,6 @@ namespace QweNumpad.App.Ui;
 /// <summary>Wires everything together and owns the tray icon.</summary>
 internal sealed class TrayApplicationContext : ApplicationContext
 {
-    private const string GitHubUrl = "https://github.com/Muratmd/QweNumpad";
-
     private readonly string _settingsPath = AppSettings.DefaultPath;
     private readonly LearnedFieldStore _store = new(LearnedFieldStore.DefaultPath);
     private readonly ModeState _modeState = new();
@@ -160,6 +158,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         var menu = _tray.ContextMenuStrip!;
         menu.Items.Clear();
 
+        menu.Items.Add(new ToolStripLabel($"QweNumpad {AppInfo.Version}") { Font = new Font(menu.Font, FontStyle.Bold) });
         menu.Items.Add(new ToolStripLabel($"Durum: {(_modeState.IsActive ? "AÇIK" : "kapalı")}"));
         menu.Items.Add(new ToolStripSeparator());
 
@@ -189,7 +188,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
         menu.Items.Add(new ToolStripMenuItem(
             $"Ayarlar… ({_settings.OverrideHotkey})", null, (_, _) => ShowSettings()));
         menu.Items.Add(new ToolStripMenuItem("Tanılama…", null, (_, _) => ShowDiagnostics()));
-        menu.Items.Add(new ToolStripMenuItem("GitHub sayfası", null, (_, _) => OpenGitHub()));
+        menu.Items.Add(new ToolStripMenuItem("GitHub sayfası", null, (_, _) => OpenUrl(AppInfo.GitHubUrl)));
+        menu.Items.Add(new ToolStripMenuItem("Hata bildir…", null, (_, _) => OpenUrl(AppInfo.NewIssueUrl)));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(new ToolStripMenuItem("Çıkış", null, (_, _) => ExitApp()));
     }
@@ -247,11 +247,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         RefreshDiagnostics();
     }
 
-    private static void OpenGitHub()
+    private static void OpenUrl(string url)
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubUrl)
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
             {
                 UseShellExecute = true,
             });

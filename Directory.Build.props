@@ -1,0 +1,17 @@
+<Project>
+  <!-- Shared by every project in the repository. Bump Version here for a release,
+       then tag the commit vX.Y.Z — the release workflow builds and publishes it. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Product>QweNumpad</Product>
+    <Authors>Murat Dursun</Authors>
+    <Company>Murat Dursun</Company>
+    <Copyright>Copyright (c) 2026 Murat Dursun</Copyright>
+    <Description>Type numbers with your left hand: qwe/asd/zxc become a numpad, automatically, only inside numeric fields.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Muratmd/QweNumpad</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- Keep the informational version clean ("1.0.0", not "1.0.0+<commit sha>"). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

@@ -50,6 +50,21 @@ internal sealed class DiagnosticsForm : Form
         _textTest.Dock = DockStyle.Top;
         _textTest.Height = 26;
 
+        var copy = new Button
+        {
+            Name = "copyDiagnostics",
+            Text = "Panoya kopyala (hata bildirimi için)",
+            AutoSize = true,
+            Dock = DockStyle.Bottom,
+        };
+        copy.Click += (_, _) =>
+        {
+            if (_details.TextLength == 0) return;
+            Clipboard.SetText(_status.Text + Environment.NewLine + _details.Text);
+            copy.Text = "Kopyalandı ✓";
+        };
+        Controls.Add(copy);
+
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 6 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -76,11 +91,28 @@ internal sealed class DiagnosticsForm : Form
         Padding = new Padding(0, 8, 0, 2),
     };
 
+    private static readonly string OwnProcessName =
+        System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+
+    private FieldInfo? _lastShown;
+
     /// <summary>Called on the UI thread whenever focus or mode changes.</summary>
     public void Update(FieldInfo? field, ModeState state, FieldHeuristics heuristics, LearnedFieldStore store)
     {
         _status.Text = $"Durum: {(state.IsActive ? "AÇIK — tuşlar numpad" : "kapalı — normal harfler")}" +
                        $"   |   Mod: {state.Override}";
+
+        // Clicking "copy" (or anywhere in this window) moves focus here. Keep showing the
+        // field the user was actually investigating instead of describing our own button.
+        // The two test boxes are the exception: they exist to be inspected.
+        if (field is not null
+            && field.Signature.ProcessName.Equals(OwnProcessName, StringComparison.OrdinalIgnoreCase)
+            && field.Signature.AutomationId is not ("testNumericField" or "testTextField"))
+        {
+            field = _lastShown;
+        }
+
+        _lastShown = field;
 
         if (field is null)
         {
@@ -92,6 +124,9 @@ internal sealed class DiagnosticsForm : Form
 
         _details.Text = string.Join(Environment.NewLine, new[]
         {
+            $"QweNumpad      : {AppInfo.Version}",
+            $"Windows        : {Environment.OSVersion.Version}",
+            "",
             $"Uygulama       : {field.Signature.ProcessName}",
             $"Kontrol tipi   : {field.Signature.ControlType}",
             $"AutomationId   : {Or(field.Signature.AutomationId)}",
