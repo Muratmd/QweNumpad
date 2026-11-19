@@ -1,4 +1,4 @@
-; Inno Setup script for QweNumpad.
+﻿; Inno Setup script for QweNumpad.
 ;
 ; Per-user install: no admin prompt, files go to %LOCALAPPDATA%\Programs\QweNumpad.
 ; That matches the app itself, which runs asInvoker and only writes HKCU.
