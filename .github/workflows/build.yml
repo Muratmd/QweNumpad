@@ -33,9 +33,16 @@ jobs:
       - name: Publish single-file executable
         run: dotnet publish src/QweNumpad.App/QweNumpad.App.csproj --configuration Release --output publish
 
+      # Built on every push so a broken installer script shows up before release day.
+      - name: Build installer
+        shell: pwsh
+        run: .github/scripts/build-installer.ps1 -Version 0.0.0-ci.${{ github.run_number }}
+
       - name: Upload executable
         uses: actions/upload-artifact@v7
         with:
           name: QweNumpad-win-x64
-          path: publish/QweNumpad.exe
+          path: |
+            publish/QweNumpad.exe
+            installer/Output/*.exe
           if-no-files-found: error

@@ -5,11 +5,17 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: write      # create the GitHub release
+  id-token: write      # Sigstore OIDC token for build provenance
+  attestations: write  # store the provenance attestation
 
 jobs:
   release:
     runs-on: windows-latest
+
+    env:
+      SIGNING_CERT_PFX_BASE64: ${{ secrets.SIGNING_CERT_PFX_BASE64 }}
+      SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v7
@@ -18,20 +24,80 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Read version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Tag '${{ github.ref_name }}' is not vX.Y.Z" }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
       - name: Unit tests
         run: dotnet test tests/QweNumpad.Core.Tests/QweNumpad.Core.Tests.csproj --configuration Release
 
       - name: Publish single-file executable
-        run: dotnet publish src/QweNumpad.App/QweNumpad.App.csproj --configuration Release --output publish
+        run: dotnet publish src/QweNumpad.App/QweNumpad.App.csproj --configuration Release --output publish -p:Version=${{ steps.version.outputs.value }}
+
+      - name: Sign executable
+        shell: pwsh
+        run: .github/scripts/sign.ps1 -Files publish/QweNumpad.exe
+
+      - name: Build installer
+        shell: pwsh
+        run: .github/scripts/build-installer.ps1 -Version ${{ steps.version.outputs.value }}
+
+      - name: Sign installer
+        shell: pwsh
+        run: .github/scripts/sign.ps1 -Files installer/Output/QweNumpad-Setup-${{ steps.version.outputs.value }}.exe
+
+      - name: Collect release files
+        shell: pwsh
+        run: |
+          $v = '${{ steps.version.outputs.value }}'
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item "installer/Output/QweNumpad-Setup-$v.exe" dist/
+          Copy-Item publish/QweNumpad.exe "dist/QweNumpad-$v-portable.exe"
+          Push-Location dist
+          Get-ChildItem *.exe | ForEach-Object {
+            '{0}  {1}' -f (Get-FileHash $_ -Algorithm SHA256).Hash.ToLower(), $_.Name
+          } | Set-Content -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+          Pop-Location
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: 'dist/*.exe'
 
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
-          files: publish/QweNumpad.exe
+          name: QweNumpad ${{ steps.version.outputs.value }}
+          files: |
+            dist/QweNumpad-Setup-${{ steps.version.outputs.value }}.exe
+            dist/QweNumpad-${{ steps.version.outputs.value }}-portable.exe
+            dist/SHA256SUMS.txt
           generate_release_notes: true
+          prerelease: ${{ contains(steps.version.outputs.value, '-') }}
           body: |
-            Download `QweNumpad.exe` below and run it. Single self-contained file, no .NET install needed.
+            ## İndir / Download
 
-            Note: the binary is unsigned, so Windows SmartScreen and some antivirus products will
-            warn about it — a low-level keyboard hook in an unsigned executable is a textbook
-            heuristic match. See the Security section of the README, or build from source.
+            | Dosya / File | Ne için / What for |
+            |---|---|
+            | **`QweNumpad-Setup-${{ steps.version.outputs.value }}.exe`** | Önerilen. Kurar, Başlat menüsüne ekler, isteğe bağlı Windows ile başlatır. Yönetici izni istemez. <br> Recommended. Installs per-user (no admin), Start menu entry, optional autostart. |
+            | `QweNumpad-${{ steps.version.outputs.value }}-portable.exe` | Kurulumsuz tek dosya. <br> Single file, no install. |
+            | `SHA256SUMS.txt` | Dosya özetleri / checksums |
+
+            Windows 10/11 x64. .NET kurulumu gerekmez / no .NET install needed.
+
+            ### Doğrulama / Verify
+
+            Bu dosyalar GitHub Actions'da bu sürümün etiketinden derlendi ve imzalı bir köken kaydı (build provenance) taşıyor:
+            These files were built by GitHub Actions from this tag and carry a signed provenance attestation:
+
+            ```
+            gh attestation verify QweNumpad-Setup-${{ steps.version.outputs.value }}.exe --repo Muratmd/QweNumpad
+            ```
+
+            Windows SmartScreen "tanınmayan uygulama" uyarısı verebilir: exe'de ticari kod imzalama sertifikası yok, ve imzasız bir klavye kancası antivirüs sezgilerine takılabilir. "Ek bilgi → Yine de çalıştır" ile açılır. Kaynak kodu açık; README'deki Güvenlik bölümüne bakın.
+            SmartScreen may warn: there is no commercial code-signing certificate yet. See the Security section of the README, or build from source.

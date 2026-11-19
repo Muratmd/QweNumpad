@@ -27,3 +27,7 @@ TestResults/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Inno Setup output
+installer/Output/
+dist/

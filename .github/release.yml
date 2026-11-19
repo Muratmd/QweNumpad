@@ -1,0 +1,15 @@
+# Groups the auto-generated release notes by pull-request label.
+changelog:
+  exclude:
+    labels: [skip-changelog]
+  categories:
+    - title: Algılama / Detection
+      labels: [detection]
+    - title: Yeni özellikler / Features
+      labels: [enhancement]
+    - title: Hata düzeltmeleri / Fixes
+      labels: [bug]
+    - title: Belgeler / Docs
+      labels: [documentation]
+    - title: Diğer / Other
+      labels: ['*']

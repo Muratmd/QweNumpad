@@ -52,6 +52,21 @@ internal sealed class TrayApplicationContext : ApplicationContext
         };
         _tray.ContextMenuStrip.Opening += (_, _) => BuildMenu();
         _tray.DoubleClick += (_, _) => ShowSettings();
+        // Left click opens the same menu as right click: users look for "close" there first.
+        _tray.MouseUp += (_, e) =>
+        {
+            if (e.Button == MouseButtons.Left) ShowTrayMenu();
+        };
+
+        TrayPromoter.PromoteInBackground(() => RunOnUi(() =>
+        {
+            // Explorer reads IsPromoted when an icon is added, so re-add it to apply the change.
+            _tray.Visible = false;
+            _tray.Visible = true;
+            _tray.ShowBalloonTip(4000, "QweNumpad çalışıyor",
+                "Sayısal alanlarda q w e / a s d / z x c numpad olur. " +
+                "Menü ve Çıkış için buradaki ikona tıkla.", ToolTipIcon.Info);
+        }));
 
         _modeState.Changed += (_, _) => RunOnUi(() =>
         {
@@ -62,6 +77,17 @@ internal sealed class TrayApplicationContext : ApplicationContext
         RefreshTray();
 
         if (openDiagnostics) ShowDiagnostics();
+        else if (!_settings.WelcomeShown) ShowWelcome();
+    }
+
+    private void ShowWelcome()
+    {
+        _settings.WelcomeShown = true;
+        _settings.Save(_settingsPath);
+
+        var welcome = new WelcomeForm(_settings.OverrideHotkey.ToString());
+        welcome.FormClosed += (_, _) => welcome.Dispose();
+        welcome.Show();
     }
 
     private void RebuildClassifier()
@@ -193,6 +219,14 @@ internal sealed class TrayApplicationContext : ApplicationContext
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(new ToolStripMenuItem("Çıkış", null, (_, _) => ExitApp()));
     }
+
+    // NotifyIcon only exposes the context menu on right click. Its private ShowContextMenu does
+    // the foreground dance needed for the menu to close when the user clicks elsewhere.
+    private static readonly System.Reflection.MethodInfo? ShowContextMenuMethod =
+        typeof(NotifyIcon).GetMethod("ShowContextMenu",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+    private void ShowTrayMenu() => ShowContextMenuMethod?.Invoke(_tray, null);
 
     private void AddModeItem(ContextMenuStrip menu, string text, ModeOverride mode)
     {

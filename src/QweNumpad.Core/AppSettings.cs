@@ -47,6 +47,9 @@ public sealed class AppSettings
     /// <summary>Show a tray balloon the first few times the mode switches, to make it visible.</summary>
     public bool NotifyOnModeChange { get; set; } = true;
 
+    /// <summary>The first-run window that explains where the tray icon lives has been shown.</summary>
+    public bool WelcomeShown { get; set; }
+
     public static string DefaultPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "QweNumpad",

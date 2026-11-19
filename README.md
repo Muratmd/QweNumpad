@@ -12,7 +12,7 @@
 
 <img src="docs/assets/hero.svg" alt="q w e, a s d, z x c under the left hand map to numpad 7 8 9, 4 5 6, 1 2 3; space is 0 and v is the decimal separator" width="720">
 
-**[⬇ Download QweNumpad.exe](https://github.com/Muratmd/QweNumpad/releases/latest)** · single file · no install · no .NET needed
+**[⬇ Download the installer](https://github.com/Muratmd/QweNumpad/releases/latest)** · or the portable exe · no admin rights · no .NET needed
 
 </div>
 
@@ -28,7 +28,9 @@ focus a normal text field, it turns itself off. Letters stay letters everywhere 
 > **🇹🇷 Türkçe:** Sol elinin altındaki `qwe` `asd` `zxc` tuşları, sayısal bir alana
 > (telefon, tutar, IBAN, adet…) tıkladığın anda kendiliğinden numpad'e dönüşür; normal metin
 > alanında harf olarak kalır. Yanlış tahmin ederse `Ctrl`+`Alt`+`N` ile düzelt — o alanı
-> öğrenir, bir daha doğru açılır. Arayüz Türkçe. [İndir](https://github.com/Muratmd/QweNumpad/releases/latest).
+> öğrenir, bir daha doğru açılır. Arayüz Türkçe. Simgesi saatin yanında; menü ve Çıkış
+> ona tıklayınca açılır. [Kurulumu indir](https://github.com/Muratmd/QweNumpad/releases/latest)
+> (yönetici izni istemez) ya da kurulumsuz portable exe'yi al.
 
 ## Status
 
@@ -86,15 +88,39 @@ It has a **copy** button that produces exactly what a bug report needs.
 
 ## Install
 
-Download `QweNumpad.exe` from [Releases](../../releases) and run it. It is a single
-self-contained file — no .NET installation needed, nothing is written outside
-`%APPDATA%\QweNumpad\`.
+From [Releases](../../releases/latest), pick one:
 
-It is a ~63 MB download, because `System.Windows.Automation` pulls the WPF assemblies in.
-Replacing that with direct `UIAutomationCore` COM interop would cut it a lot and is a
-welcome contribution.
+| File | |
+|------|---|
+| `QweNumpad-Setup-x.y.z.exe` | **Recommended.** Per-user install to `%LOCALAPPDATA%\Programs\QweNumpad` — no admin prompt. Adds a Start menu entry, optionally starts with Windows, shows up in *Installed apps* for a clean uninstall. Upgrades in place. |
+| `QweNumpad-x.y.z-portable.exe` | The same app as one self-contained file. Run it from anywhere. |
+| `SHA256SUMS.txt` | Checksums for both. |
 
-The app lives in the notification area. Double-click the tray icon for settings.
+No .NET installation is needed either way. The download is ~63 MB because
+`System.Windows.Automation` pulls the WPF assemblies in; replacing that with direct
+`UIAutomationCore` COM interop would cut it a lot and is a welcome contribution.
+
+The app lives in the notification area, next to the clock. On first start it shows a short
+welcome window and asks Windows to move its icon out of the hidden `^` flyout onto the
+taskbar. Some Windows 11 builds do not apply that right away; the welcome window has a button
+that opens the Settings page where you can switch it on. **Click the icon** for the menu, which has
+**Çıkış** (Exit); double-click opens settings.
+
+### Verifying a download
+
+Every release file is built by GitHub Actions from the tagged commit, and carries a signed
+[build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations).
+With the [GitHub CLI](https://cli.github.com/):
+
+```powershell
+gh attestation verify QweNumpad-Setup-1.0.0.exe --repo Muratmd/QweNumpad
+```
+
+That proves the file came out of this repository's release workflow and was not altered
+afterwards. It is not Authenticode: the binaries have no commercial code-signing certificate
+yet, so SmartScreen will still say "unknown publisher". The release workflow signs
+automatically once a certificate is added as the `SIGNING_CERT_PFX_BASE64` /
+`SIGNING_CERT_PASSWORD` repository secrets.
 
 Icon colour tells the state:
 
@@ -131,12 +157,16 @@ suspicious of that, so here is exactly what it does and does not do:
   `settings.json`. `learned.json` holds field *metadata* — process name, control type,
   automation id, label text — so a corrected guess stays corrected. It never contains
   anything you typed.
+- **Registry, per-user only:** the `QweNumpad` value under `HKCU\…\CurrentVersion\Run` when
+  you enable "start with Windows", and, once, `IsPromoted=1` on the app's own entry under
+  `HKCU\Control Panel\NotifyIconSettings` so the tray icon is visible. If you hide the icon
+  again, Windows records that and the app never touches it a second time.
 - **It does not run elevated** (`asInvoker` in the manifest). As a consequence it cannot
   remap keys inside elevated windows such as Task Manager or UAC prompts. That is the
   correct trade-off for a keyboard hook.
 - **Your antivirus may warn about it.** A low-level keyboard hook in an unsigned binary is
-  a textbook heuristic match. Build it yourself from source if you would rather not trust
-  a downloaded binary — that is why the build is three commands.
+  a textbook heuristic match. [Verify the download](#verifying-a-download), or build it
+  yourself from source — that is why the build is three commands.
 
 ## How it is put together
 
