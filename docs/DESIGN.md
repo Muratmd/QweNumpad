@@ -60,6 +60,12 @@ are considered at all, so a keyword in a button label cannot switch the mode on.
 A field signature is `process name + control type + automation id + label`. It contains no typed
 content, by design — the persisted file must not be able to leak what the user wrote.
 
+Digit runs in the label are replaced by `#` when building the lookup key. Labels frequently
+carry the field's current value or a row number ("Tutar: 150 TL", "Satır 3"); keeping those
+digits would make a taught rule stop matching the moment the value changed, which silently
+defeats the learning safety net. The automation id keeps its digits, because Win32 dialogs
+put the control id there ("1001", "1002") and that is what tells two fields apart.
+
 ## Escape hatches
 
 `Shift` and `Ctrl` / `Alt` / `Win` suppress the mapping. `Shift` matters most: it means a letter
@@ -108,7 +114,7 @@ written are field metadata and settings under `%APPDATA%\QweNumpad\`, and the ap
 
 ## Testing
 
-- `QweNumpad.Core.Tests` — 66 unit tests over the mapping decision, modifier bypass, mode
+- `QweNumpad.Core.Tests` — 74 unit tests over the mapping decision, modifier bypass, mode
   state machine, heuristics (positive and negative name cases), the learned-rule store
   including corrupt-file handling, and learned-beats-heuristic precedence.
 - `tools/smoke-test.ps1` — launches the app, injects real keystrokes with `SendInput`, reads

@@ -17,13 +17,35 @@ public readonly record struct FieldSignature(
         string? name) =>
         new(processName ?? "", controlType ?? "", automationId ?? "", name ?? "");
 
-    /// <summary>Stable, case-insensitive key used for persistence and lookup.</summary>
+    /// <summary>
+    /// Stable, case-insensitive key used for persistence and lookup.
+    /// </summary>
+    /// <remarks>
+    /// Digit runs in the label become <c>#</c>: labels often carry the field's current value
+    /// or a row number ("Tutar: 150 TL", "Satır 3"), and if those were part of the key a
+    /// taught rule would stop matching as soon as the value changed.
+    /// The automation id keeps its digits, because Win32 dialogs expose control ids there
+    /// ("1001", "1002") and those are exactly what distinguishes two fields.
+    /// </remarks>
     public string Key =>
         string.Join('|',
             ProcessName.Trim().ToLowerInvariant(),
             ControlType.Trim().ToLowerInvariant(),
             AutomationId.Trim().ToLowerInvariant(),
-            Name.Trim().ToLowerInvariant());
+            NormalizeLabel(Name));
+
+    private static readonly System.Text.RegularExpressions.Regex DigitRuns =
+        new(@"\d+", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static readonly System.Text.RegularExpressions.Regex WhitespaceRuns =
+        new(@"\s+", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private static string NormalizeLabel(string label)
+    {
+        var lowered = label.Trim().ToLowerInvariant();
+        var withoutNumbers = DigitRuns.Replace(lowered, "#");
+        return WhitespaceRuns.Replace(withoutNumbers, " ");
+    }
 
     public override string ToString() =>
         $"{ProcessName} / {ControlType} / {(string.IsNullOrEmpty(AutomationId) ? "-" : AutomationId)} / {(string.IsNullOrEmpty(Name) ? "-" : Name)}";
