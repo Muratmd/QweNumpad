@@ -28,7 +28,8 @@ focus a normal text field, it turns itself off. Letters stay letters everywhere 
 > **🇹🇷 Türkçe:** Sol elinin altındaki `qwe` `asd` `zxc` tuşları, sayısal bir alana
 > (telefon, tutar, IBAN, adet…) tıkladığın anda kendiliğinden numpad'e dönüşür; normal metin
 > alanında harf olarak kalır. Yanlış tahmin ederse `Ctrl`+`Alt`+`N` ile düzelt — o alanı
-> öğrenir, bir daha doğru açılır. Arayüz Türkçe. Simgesi saatin yanında; menü ve Çıkış
+> öğrenir, bir daha doğru açılır. Her yerde rakam için `CapsLock`'u basılı tut; tek
+> dokunuş numpad kilidini açar/kapatır (gerçek Caps Lock: `Shift`+`CapsLock`). Arayüz Türkçe. Simgesi saatin yanında; menü ve Çıkış
 > ona tıklayınca açılır. [Kurulumu indir](https://github.com/Muratmd/QweNumpad/releases/latest)
 > (yönetici izni istemez) ya da kurulumsuz portable exe'yi al.
 
@@ -78,6 +79,20 @@ applies to row 12.
 The tray menu also has explicit **"teach this field as numeric / as text"** entries, and
 **Diagnostics** shows exactly what the detector saw — open that first if something misbehaves.
 It has a **copy** button that produces exactly what a bug report needs.
+
+### Layer key: hold for digits, tap to lock
+
+When you know better than the detector, skip it:
+
+| Do | Result |
+|----|--------|
+| **Hold `CapsLock`** and type `q w e` … | digits, in any field — even one detected as text, even when *Forced off* |
+| **Tap `CapsLock`** | numpad lock on (*Forced on*, blue icon). Tap again: back to *Auto*. |
+| `Shift` + `CapsLock` | the real Caps Lock |
+
+Unlike `Ctrl`+`Alt`+`N`, the lock does not teach the field anything — it is for typing a
+list of numbers, not a correction. The layer key can be switched to **Right Ctrl** or turned
+off in Settings. (Right Alt is not offered: it is AltGr on Turkish and many other layouts.)
 
 ### Escape hatches
 
@@ -188,7 +203,7 @@ src/QweNumpad.App/         WinForms tray application
   Detection/UiaFocusWatcher.cs    UI Automation focus tracking
   Ui/                             tray icon, settings, diagnostics
 
-tests/QweNumpad.Core.Tests/   74 unit tests
+tests/QweNumpad.Core.Tests/   87 unit tests
 tools/                        end-to-end test scripts
 ```
 
@@ -206,7 +221,7 @@ instead, rather than silently toggling your Num Lock.
 ## Testing
 
 ```powershell
-dotnet test                                                        # 74 unit tests
+dotnet test                                                        # 87 unit tests
 powershell -ExecutionPolicy Bypass -File tools\smoke-test.ps1      # end to end, in-app
 powershell -ExecutionPolicy Bypass -File tools\browser-test.ps1    # end to end, in a browser
 ```

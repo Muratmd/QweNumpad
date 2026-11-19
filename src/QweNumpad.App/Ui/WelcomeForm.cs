@@ -47,7 +47,9 @@ internal sealed class WelcomeForm : Form
             AutoSize = true,
             MaximumSize = new Size(420, 0),
             Text =
-                $"Yanlış karar verirse {hotkey} ile düzelt; o alanı öğrenir.\n\n" +
+                "Her yerde rakam için CapsLock'u basılı tut. Tek dokunuş numpad kilidini " +
+                "açar/kapatır; gerçek Caps Lock için Shift+CapsLock.\n\n" +
+                $"Otomatik algılama yanlış karar verirse {hotkey} ile düzelt; o alanı öğrenir.\n\n" +
                 "Simgesi sağ alttaki bildirim alanında (saat yanında). Görünmüyorsa ^ okuna " +
                 "tıkla. Menü, Ayarlar ve Çıkış o simgeye tıklayınca açılır.",
         };

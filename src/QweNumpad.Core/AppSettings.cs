@@ -25,6 +25,16 @@ public sealed class HotkeyDefinition
     }
 }
 
+/// <summary>Virtual-key codes offered as the layer key.</summary>
+public static class LayerKeys
+{
+    public const int None = 0;
+    public const int CapsLock = 0x14;
+
+    /// <summary>VK_RCONTROL. The low-level hook reports the sided code. Right Alt is not offered: it is AltGr on Turkish Q.</summary>
+    public const int RightControl = 0xA3;
+}
+
 /// <summary>User-editable configuration, stored next to the learned-field rules.</summary>
 public sealed class AppSettings
 {
@@ -46,6 +56,9 @@ public sealed class AppSettings
 
     /// <summary>Show a tray balloon the first few times the mode switches, to make it visible.</summary>
     public bool NotifyOnModeChange { get; set; } = true;
+
+    /// <summary>Hold for digits, tap to toggle the numpad lock. <see cref="LayerKeys.None"/> disables it.</summary>
+    public int LayerKey { get; set; } = LayerKeys.CapsLock;
 
     /// <summary>The first-run window that explains where the tray icon lives has been shown.</summary>
     public bool WelcomeShown { get; set; }

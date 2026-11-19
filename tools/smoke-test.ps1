@@ -11,6 +11,8 @@
       * a field detected as numeric turns q w e a s d z x c space into 7 8 9 4 5 6 1 2 3 0
       * a field detected as text is left alone (q w e stays "qwe")
       * Shift bypasses the mapping even in a numeric field (Shift+q stays "Q")
+      * holding CapsLock gives digits even in the text field, a tap toggles the numpad
+        lock, and the system Caps Lock state is left unchanged
 
     Run from a normal (non-elevated) PowerShell. The app must not already be running.
 
@@ -61,6 +63,14 @@ public static class Keyboard
     public static extern bool SetForegroundWindow(IntPtr hWnd);
 
     private const uint KEYEVENTF_KEYUP = 0x0002;
+
+    [DllImport("user32.dll")]
+    private static extern short GetKeyState(int vk);
+
+    public static bool CapsLockOn() { return (GetKeyState(0x14) & 1) != 0; }
+
+    public static void Down(ushort vk) { Send(vk, false); System.Threading.Thread.Sleep(30); }
+    public static void Up(ushort vk) { Send(vk, true); System.Threading.Thread.Sleep(30); }
 
     private static void Send(ushort vk, bool up)
     {
@@ -202,6 +212,34 @@ try {
     foreach ($vk in 0x51, 0x57, 0x45) { [Keyboard]::Tap([uint16]$vk) }
     Start-Sleep -Milliseconds 300
     Assert-Equal 'Metin alaninda qwe' 'qwe' (Get-FieldValue -Element $textField)
+
+    # --- 3b. CapsLock layer: hold for digits, tap to lock, Caps Lock state untouched ---
+    $capsBefore = [Keyboard]::CapsLockOn()
+
+    Set-FieldValue -Element $textField -Value ''
+    $textField.SetFocus()
+    Start-Sleep -Milliseconds 400
+    [Keyboard]::Down([uint16]0x14)
+    foreach ($vk in 0x51, 0x57, 0x45) { [Keyboard]::Tap([uint16]$vk) }
+    [Keyboard]::Up([uint16]0x14)
+    Start-Sleep -Milliseconds 300
+    Assert-Equal 'Metin alaninda CapsLock basili + qwe' '789' (Get-FieldValue -Element $textField)
+
+    Set-FieldValue -Element $textField -Value ''
+    [Keyboard]::Tap([uint16]0x14)
+    Start-Sleep -Milliseconds 200
+    foreach ($vk in 0x51, 0x57, 0x45) { [Keyboard]::Tap([uint16]$vk) }
+    Start-Sleep -Milliseconds 300
+    Assert-Equal 'CapsLock dokunusu sonrasi kilit acik, qwe' '789' (Get-FieldValue -Element $textField)
+
+    Set-FieldValue -Element $textField -Value ''
+    [Keyboard]::Tap([uint16]0x14)
+    Start-Sleep -Milliseconds 200
+    foreach ($vk in 0x51, 0x57, 0x45) { [Keyboard]::Tap([uint16]$vk) }
+    Start-Sleep -Milliseconds 300
+    Assert-Equal 'Ikinci dokunus kilidi kapatir, qwe' 'qwe' (Get-FieldValue -Element $textField)
+
+    Assert-Equal 'Caps Lock durumu degismedi' "$capsBefore" "$([Keyboard]::CapsLockOn())"
 
     # --- 4. Diagnostics "copy" reports the field, not the copy button itself ---
     # Focusing the button first is the point: that is what a real click does, and the

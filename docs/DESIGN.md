@@ -114,7 +114,7 @@ written are field metadata and settings under `%APPDATA%\QweNumpad\`, and the ap
 
 ## Testing
 
-- `QweNumpad.Core.Tests` — 74 unit tests over the mapping decision, modifier bypass, mode
+- `QweNumpad.Core.Tests` — 87 unit tests over the mapping decision, modifier bypass, mode
   state machine, heuristics (positive and negative name cases), the learned-rule store
   including corrupt-file handling, and learned-beats-heuristic precedence.
 - `tools/smoke-test.ps1` — launches the app, injects real keystrokes with `SendInput`, reads

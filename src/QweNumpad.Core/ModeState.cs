@@ -19,6 +19,7 @@ public enum ModeOverride
 public sealed class ModeState
 {
     private volatile bool _autoDetected;
+    private volatile bool _layerHeld;
     private volatile ModeOverride _override = ModeOverride.Auto;
     private bool _lastEffective;
     private ModeOverride _lastOverride = ModeOverride.Auto;
@@ -29,7 +30,10 @@ public sealed class ModeState
 
     public bool AutoDetected => _autoDetected;
 
-    public bool IsActive => _override switch
+    /// <summary>The layer key is held down. Wins over everything, including Forced off.</summary>
+    public bool LayerHeld => _layerHeld;
+
+    public bool IsActive => _layerHeld || _override switch
     {
         ModeOverride.ForcedOn => true,
         ModeOverride.ForcedOff => false,
@@ -40,6 +44,20 @@ public sealed class ModeState
     {
         _autoDetected = detected;
         RaiseIfEffectiveStateChanged();
+    }
+
+    public void SetLayerHeld(bool held)
+    {
+        _layerHeld = held;
+        RaiseIfEffectiveStateChanged();
+    }
+
+    /// <summary>Layer-key tap: Auto → Forced on, anything else → Auto.</summary>
+    public ModeOverride ToggleLock()
+    {
+        _override = _override == ModeOverride.Auto ? ModeOverride.ForcedOn : ModeOverride.Auto;
+        RaiseIfEffectiveStateChanged();
+        return _override;
     }
 
     public ModeOverride CycleOverride()

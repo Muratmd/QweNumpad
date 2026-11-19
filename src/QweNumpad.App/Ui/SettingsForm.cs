@@ -22,12 +22,15 @@ internal sealed class SettingsForm : Form
     private readonly CheckBox _notify = new();
     private readonly ListView _mapList = new();
     private readonly ListBox _learned = new();
+    private readonly ComboBox _layerKey = new();
+    private readonly AppSettings _original;
 
     private HotkeyDefinition _hotkey;
 
     public SettingsForm(AppSettings settings, LearnedFieldStore store)
     {
         _store = store;
+        _original = settings;
         _hotkey = new HotkeyDefinition
         {
             KeyCode = settings.OverrideHotkey.KeyCode,
@@ -63,7 +66,7 @@ internal sealed class SettingsForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 8,
+            RowCount = 10,
             AutoSize = false,
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -75,6 +78,16 @@ internal sealed class SettingsForm : Form
 
         layout.Controls.Add(Section("Zorla aç/kapa kısayolu (Oto → Açık → Kapalı)"));
         layout.Controls.Add(_hotkeyButton);
+
+        // --- Layer key ---
+        _layerKey.DropDownStyle = ComboBoxStyle.DropDownList;
+        _layerKey.Width = 200;
+        _layerKey.Items.AddRange(LayerKeyChoices);
+        _layerKey.SelectedItem = LayerKeyChoices.FirstOrDefault(c => c.KeyCode == settings.LayerKey)
+                                 ?? LayerKeyChoices[0];
+
+        layout.Controls.Add(Section("Katman tuşu (basılı tut: rakam · dokun: numpad kilidi · Shift+tuş: kendi işlevi)"));
+        layout.Controls.Add(_layerKey);
 
         // --- Key map ---
         _mapList.View = View.Details;
@@ -310,8 +323,23 @@ internal sealed class SettingsForm : Form
             CustomMap = IsDefaultMap(map) ? new Dictionary<int, VirtualKey>() : map,
             StartWithWindows = _startup.Checked,
             NotifyOnModeChange = _notify.Checked,
+            LayerKey = ((LayerKeyChoice)_layerKey.SelectedItem!).KeyCode,
+            // Not editable here, but must survive a save.
+            WelcomeShown = _original.WelcomeShown,
         };
     }
+
+    private sealed record LayerKeyChoice(int KeyCode, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    private static readonly LayerKeyChoice[] LayerKeyChoices =
+    {
+        new(LayerKeys.CapsLock, "CapsLock"),
+        new(LayerKeys.RightControl, "Sağ Ctrl"),
+        new(LayerKeys.None, "Kapalı"),
+    };
 
     private static bool IsDefaultMap(Dictionary<int, VirtualKey> map)
     {

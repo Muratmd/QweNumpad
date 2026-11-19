@@ -34,8 +34,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _marshaller.CreateControl();
 
         _router = new KeystrokeRouter(
-            _modeState, new MappingEngine(_settings.BuildKeyMap()), _settings.OverrideHotkey);
+            _modeState, new MappingEngine(_settings.BuildKeyMap()), _settings.OverrideHotkey, _settings.LayerKey);
         _router.OverrideHotkeyPressed += (_, _) => CycleOverride();
+        _router.LayerKeyTapped += (_, _) => ToggleLock();
 
         // Installed from the UI thread, so hook callbacks arrive on the UI thread too.
         _hook = new LowLevelKeyboardHook(_router.Handle);
@@ -146,6 +147,15 @@ internal sealed class TrayApplicationContext : ApplicationContext
             }
         }
 
+        RefreshTray();
+        ShowModeBalloon(mode);
+    }
+
+    /// <summary>Layer-key tap. Unlike <see cref="CycleOverride"/> this does not teach the field:
+    /// the lock is for typing a list, not a statement about what the field is.</summary>
+    private void ToggleLock()
+    {
+        var mode = _modeState.ToggleLock();
         RefreshTray();
         ShowModeBalloon(mode);
     }
@@ -272,7 +282,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         StartupRegistry.Set(_settings.StartWithWindows);
 
         RebuildClassifier();
-        _router.Reconfigure(new MappingEngine(_settings.BuildKeyMap()), _settings.OverrideHotkey);
+        _router.Reconfigure(new MappingEngine(_settings.BuildKeyMap()), _settings.OverrideHotkey, _settings.LayerKey);
 
         if (_currentField is not null)
             _modeState.SetAutoDetected(_classifier.IsNumericField(_currentField));

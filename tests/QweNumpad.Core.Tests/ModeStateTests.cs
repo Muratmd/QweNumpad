@@ -61,6 +61,54 @@ public class ModeStateTests
     }
 
     [Fact]
+    public void Held_layer_activates_even_when_forced_off()
+    {
+        var state = new ModeState();
+        state.SetOverride(ModeOverride.ForcedOff);
+
+        state.SetLayerHeld(true);
+        Assert.True(state.IsActive);
+
+        state.SetLayerHeld(false);
+        Assert.False(state.IsActive);
+    }
+
+    [Fact]
+    public void Layer_hold_raises_changed()
+    {
+        var state = new ModeState();
+        var count = 0;
+        state.Changed += (_, _) => count++;
+
+        state.SetLayerHeld(true);
+        state.SetLayerHeld(true);
+        state.SetLayerHeld(false);
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public void Toggle_lock_goes_auto_to_forced_on_and_back()
+    {
+        var state = new ModeState();
+
+        Assert.Equal(ModeOverride.ForcedOn, state.ToggleLock());
+        Assert.True(state.IsActive);
+
+        Assert.Equal(ModeOverride.Auto, state.ToggleLock());
+        Assert.False(state.IsActive);
+    }
+
+    [Fact]
+    public void Toggle_lock_from_forced_off_returns_to_auto()
+    {
+        var state = new ModeState();
+        state.SetOverride(ModeOverride.ForcedOff);
+
+        Assert.Equal(ModeOverride.Auto, state.ToggleLock());
+    }
+
+    [Fact]
     public void Raises_changed_only_when_effective_state_changes()
     {
         var state = new ModeState();

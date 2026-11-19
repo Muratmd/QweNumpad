@@ -16,30 +16,54 @@ internal sealed class KeystrokeRouter
     private readonly ModeState _state;
     private readonly Dictionary<int, VirtualKey> _translatedDown = new();
 
+    private readonly LayerKeyTracker _layer = new();
+
     private MappingEngine _engine;
     private HotkeyDefinition _hotkey;
+    private int _layerKey;
     private int _swallowedHotkeyKey = -1;
 
-    public KeystrokeRouter(ModeState state, MappingEngine engine, HotkeyDefinition hotkey)
+    public KeystrokeRouter(ModeState state, MappingEngine engine, HotkeyDefinition hotkey, int layerKey)
     {
         _state = state;
         _engine = engine;
         _hotkey = hotkey;
+        _layerKey = layerKey;
     }
 
     public event EventHandler? OverrideHotkeyPressed;
 
-    public void Reconfigure(MappingEngine engine, HotkeyDefinition hotkey)
+    /// <summary>The layer key was tapped: toggle the numpad lock.</summary>
+    public event EventHandler? LayerKeyTapped;
+
+    public void Reconfigure(MappingEngine engine, HotkeyDefinition hotkey, int layerKey)
     {
         _engine = engine;
         _hotkey = hotkey;
+
+        if (layerKey != _layerKey)
+        {
+            // Changing the key mid-hold would leave the layer stuck on.
+            _layerKey = layerKey;
+            _state.SetLayerHeld(false);
+        }
     }
 
     /// <summary>Called from the keyboard hook. Returns true to swallow the key.</summary>
     public bool Handle(int virtualKeyCode, bool isKeyDown, KeyModifiers modifiers)
     {
+        if (_layerKey != LayerKeys.None && virtualKeyCode == _layerKey)
+        {
+            var result = _layer.OnLayerKey(isKeyDown, modifiers, Environment.TickCount64);
+            _state.SetLayerHeld(_layer.IsHeld);
+            if (result.Tapped) LayerKeyTapped?.Invoke(this, EventArgs.Empty);
+            return result.Swallow;
+        }
+
         if (isKeyDown)
         {
+            _layer.OnOtherKeyDown();
+
             if (MatchesHotkey(virtualKeyCode, modifiers))
             {
                 _swallowedHotkeyKey = virtualKeyCode;
